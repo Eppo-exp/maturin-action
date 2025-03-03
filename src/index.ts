@@ -668,7 +668,7 @@ async function dockerBuild(
     if (target.includes('linux') && target.includes('i686')) {
       commands.push(
         'echo "::group::Install libatomic"',
-        'if command -v yum &> /dev/null; then yum install -y libatomic; else apt-get update && apt-get install -y libatomic1; fi',
+        'if command -v yum &> /dev/null; then yum install -y libatomic.i686; else apt-get update && apt-get install -y libatomic1; fi',
         'echo "::endgroup::"'
       )
     }
