@@ -660,11 +660,6 @@ async function dockerBuild(
     )
   }
   if (target.length > 0) {
-    commands.push(
-      'echo "::group::Install Rust target"',
-      `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
-      'echo "::endgroup::"'
-    )
     if (target.includes('linux') && target.includes('i686')) {
       commands.push(
         'echo "::group::Install libatomic"',
@@ -672,6 +667,11 @@ async function dockerBuild(
         'echo "::endgroup::"'
       )
     }
+    commands.push(
+      'echo "::group::Install Rust target"',
+      `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
+      'echo "::endgroup::"'
+    )
   }
   if (rustupComponents.length > 0) {
     const components = rustupComponents.split(/\s+/).join(' ')
