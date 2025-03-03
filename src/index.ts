@@ -632,26 +632,41 @@ async function dockerBuild(
   const commands = [
     '#!/bin/bash',
     // Stop on first error
-    'set -euo pipefail',
-    // Install Rust
-    'echo "::group::Install Rust"',
-    // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
-    `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
-    'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
-    `echo "Install Rust toolchain ${rustToolchain}"`,
-    `rustup override set ${rustToolchain}`,
-    `rustup component add llvm-tools-preview || true`,
-    'echo "::endgroup::"',
-    // Add all supported python versions to PATH
-    'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
-    // Install maturin
-    'echo "::group::Install maturin"',
-    `curl -L ${url} | tar -xz -C /usr/local/bin`,
-    'maturin --version || true',
-    'which patchelf > /dev/null || python3 -m pip install --user patchelf',
-    'python3 -m pip install --user cffi || true', // Allow failure for now
-    'echo "::endgroup::"'
+    'set -euo pipefail'
   ]
+  if (
+    target.length > 0 &&
+    target.includes('linux') &&
+    target.includes('i686')
+  ) {
+    commands.push(
+      'echo "::group::Install libatomic"',
+      'if command -v yum &> /dev/null; then yum install -y libatomic.i686; else apt-get update && apt-get install -y libatomic1; fi',
+      'echo "::endgroup::"'
+    )
+  }
+  commands.push(
+    ...[
+      // Install Rust
+      'echo "::group::Install Rust"',
+      // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
+      `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
+      'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
+      `echo "Install Rust toolchain ${rustToolchain}"`,
+      `rustup override set ${rustToolchain}`,
+      `rustup component add llvm-tools-preview || true`,
+      'echo "::endgroup::"',
+      // Add all supported python versions to PATH
+      'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
+      // Install maturin
+      'echo "::group::Install maturin"',
+      `curl -L ${url} | tar -xz -C /usr/local/bin`,
+      'maturin --version || true',
+      'which patchelf > /dev/null || python3 -m pip install --user patchelf',
+      'python3 -m pip install --user cffi || true', // Allow failure for now
+      'echo "::endgroup::"'
+    ]
+  )
   if (args.includes('--zig')) {
     commands.push(
       'echo "::group::Install Zig"',
@@ -660,13 +675,6 @@ async function dockerBuild(
     )
   }
   if (target.length > 0) {
-    if (target.includes('linux') && target.includes('i686')) {
-      commands.push(
-        'echo "::group::Install libatomic"',
-        'if command -v yum &> /dev/null; then yum install -y libatomic.i686; else apt-get update && apt-get install -y libatomic1; fi',
-        'echo "::endgroup::"'
-      )
-    }
     commands.push(
       'echo "::group::Install Rust target"',
       `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,

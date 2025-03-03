@@ -11890,7 +11890,14 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     const rustupComponents = core.getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
-        'set -euo pipefail',
+        'set -euo pipefail'
+    ];
+    if (target.length > 0 &&
+        target.includes('linux') &&
+        target.includes('i686')) {
+        commands.push('echo "::group::Install libatomic"', 'if command -v yum &> /dev/null; then yum install -y libatomic.i686; else apt-get update && apt-get install -y libatomic1; fi', 'echo "::endgroup::"');
+    }
+    commands.push(...[
         'echo "::group::Install Rust"',
         `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
         'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
@@ -11905,14 +11912,11 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         'which patchelf > /dev/null || python3 -m pip install --user patchelf',
         'python3 -m pip install --user cffi || true',
         'echo "::endgroup::"'
-    ];
+    ]);
     if (args.includes('--zig')) {
         commands.push('echo "::group::Install Zig"', 'python3 -m pip install --user ziglang', 'echo "::endgroup::"');
     }
     if (target.length > 0) {
-        if (target.includes('linux') && target.includes('i686')) {
-            commands.push('echo "::group::Install libatomic"', 'if command -v yum &> /dev/null; then yum install -y libatomic.i686; else apt-get update && apt-get install -y libatomic1; fi', 'echo "::endgroup::"');
-        }
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
     }
     if (rustupComponents.length > 0) {
