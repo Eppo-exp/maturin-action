@@ -12,7 +12,7 @@ impl DummyClass {
 }
 
 #[pymodule]
-fn pyo3_pure(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyo3_pure(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<DummyClass>()?;
     m.add("fourtytwo", 42)?;
 
