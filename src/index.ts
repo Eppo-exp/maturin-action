@@ -324,7 +324,6 @@ async function getRustToolchain(args: string[]): Promise<string> {
   const root = process.env.GITHUB_WORKSPACE!
   const manifestDir = getManifestDir(args)
   let currentDir = manifestDir
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const toolchainToml = path.join(currentDir, 'rust-toolchain.toml')
     const toolchain = path.join(currentDir, 'rust-toolchain')
