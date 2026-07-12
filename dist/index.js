@@ -11129,11 +11129,12 @@ async function getRustToolchain(args) {
         else {
             core.debug(`${toolchain} doesn't exist`);
         }
-        if (currentDir === root) {
-            core.debug(`No rust-toolchain.toml or rust-toolchain found inside ${root}`);
+        const parentDir = path.dirname(currentDir);
+        if (currentDir === root || parentDir === currentDir) {
+            core.debug(`No rust-toolchain.toml or rust-toolchain found from ${manifestDir} to ${currentDir}`);
             break;
         }
-        currentDir = path.dirname(currentDir);
+        currentDir = parentDir;
     }
     return rustToolchain;
 }
