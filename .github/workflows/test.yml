@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
       - name: npm install
         run: npm install
       - name: lint JavaScript
@@ -38,7 +38,7 @@ jobs:
         os:
           - ubuntu-24.04
           - ubuntu-22.04-arm
-          - macos-13
+          - macos-15
           - windows-latest
         toolchain: [stable, nightly]
     steps:
@@ -79,7 +79,7 @@ jobs:
       - name: check maturin in PATH
         run: maturin --help
       - name: maturin build manylinux auto
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         uses: ./
         with:
           args: -i python3.10 --out dist
@@ -96,7 +96,7 @@ jobs:
             yum install -y llvm-toolset-7-clang
             source /opt/rh/llvm-toolset-7/enable
       - name: maturin build nightly powerpc64le musl
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
+        if: ${{ matrix.os == 'ubuntu-24.04' && matrix.toolchain == 'nightly' }}
         uses: ./
         with:
           rust-toolchain: nightly
@@ -133,10 +133,10 @@ jobs:
           args: -m tests/pyo3-pure/Cargo.toml --features python
           manylinux: 'auto'
       - name: docker pull
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         run: docker pull quay.io/pypa/manylinux_2_28_x86_64:latest
       - name: maturin build with existing docker image
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         uses: ./
         with:
           rustup-components: rustfmt
@@ -144,7 +144,7 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'auto'
       - name: maturin build --target args
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
@@ -157,7 +157,7 @@ jobs:
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
           manylinux: 'auto'
       - name: maturin build --zig container on
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
@@ -166,7 +166,7 @@ jobs:
           manylinux: 'auto'
           container: 'on'
       - name: maturin build --zig unsupported target
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
@@ -275,7 +275,7 @@ jobs:
             -e RUNNER_OS
           rust-toolchain: ${{ matrix.toolchain }}
           working-directory: ${{ matrix.platform.test-crate }}
-          args: -i python3.8
+          args: -i python3.9
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain
@@ -286,7 +286,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain.toml
@@ -300,7 +300,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain with toml content
@@ -317,7 +317,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
 

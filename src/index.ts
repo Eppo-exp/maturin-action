@@ -324,7 +324,6 @@ async function getRustToolchain(args: string[]): Promise<string> {
   const root = process.env.GITHUB_WORKSPACE!
   const manifestDir = getManifestDir(args)
   let currentDir = manifestDir
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const toolchainToml = path.join(currentDir, 'rust-toolchain.toml')
     const toolchain = path.join(currentDir, 'rust-toolchain')
@@ -346,13 +345,14 @@ async function getRustToolchain(args: string[]): Promise<string> {
     } else {
       core.debug(`${toolchain} doesn't exist`)
     }
-    if (currentDir === root) {
+    const parentDir = path.dirname(currentDir)
+    if (currentDir === root || parentDir === currentDir) {
       core.debug(
-        `No rust-toolchain.toml or rust-toolchain found inside ${root}`
+        `No rust-toolchain.toml or rust-toolchain found from ${manifestDir} to ${currentDir}`
       )
       break
     }
-    currentDir = path.dirname(currentDir)
+    currentDir = parentDir
   }
   return rustToolchain
 }
